@@ -5,17 +5,16 @@ import com.reliaquest.api.model.EmployeeResponse;
 import com.reliaquest.server.model.CreateMockEmployeeInput;
 import com.reliaquest.server.model.DeleteMockEmployeeInput;
 import com.reliaquest.server.model.Response;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 @Service
 public class EmployeeService {
@@ -46,8 +45,7 @@ public class EmployeeService {
         log.trace("Searching employees that contain: '{}'", searchString);
 
         // Make sure to lowercase searchString
-        List<Employee> employeeList = getAllEmployees()
-                .stream()
+        List<Employee> employeeList = getAllEmployees().stream()
                 .filter(employee -> employee.getName().toLowerCase().contains(searchString.toLowerCase()))
                 .toList();
 
@@ -65,8 +63,7 @@ public class EmployeeService {
         log.trace("Searching employee by id: {}", id);
 
         // Make sure to use equals when comparing strings and not ==
-        Optional<Employee> employeeOptional = getAllEmployees()
-                .stream()
+        Optional<Employee> employeeOptional = getAllEmployees().stream()
                 .filter(employee -> employee.getId().equals(id))
                 .findFirst();
 
@@ -84,11 +81,8 @@ public class EmployeeService {
         log.trace("Finding highest salary");
 
         // Find the max int given a list of Employee objects
-        int highestSalary = getAllEmployees()
-                .stream()
-                .mapToInt(Employee::getSalary)
-                .max()
-                .orElse(0);
+        int highestSalary =
+                getAllEmployees().stream().mapToInt(Employee::getSalary).max().orElse(0);
 
         log.trace("Highest salary found: {}", highestSalary);
 
@@ -100,8 +94,7 @@ public class EmployeeService {
         log.trace("Finding top 10 highest earners");
 
         // Comparator will use natural ordering (i.e. ascending) so we want to reverse it and get the first 10
-        List<String> employeeList = getAllEmployees()
-                .stream()
+        List<String> employeeList = getAllEmployees().stream()
                 .sorted(Comparator.comparingInt(Employee::getSalary).reversed())
                 .limit(10)
                 .map(Employee::getName)
@@ -124,11 +117,7 @@ public class EmployeeService {
 
         // Exchange with ParameterizedTypeReference
         ResponseEntity<Response<Employee>> responseEntity = restTemplate.exchange(
-                employeeApi,
-                HttpMethod.POST,
-                requestEntity,
-                new ParameterizedTypeReference<>() {}
-        );
+                employeeApi, HttpMethod.POST, requestEntity, new ParameterizedTypeReference<>() {});
 
         return Objects.requireNonNull(responseEntity.getBody()).data();
     }
@@ -144,12 +133,7 @@ public class EmployeeService {
         HttpEntity<DeleteMockEmployeeInput> requestEntity = new HttpEntity<>(deleteMockEmployeeInput, httpHeaders);
 
         // Exchange with ParameterizedTypeReference
-        restTemplate.exchange(
-                employeeApi,
-                HttpMethod.DELETE,
-                requestEntity,
-                new ParameterizedTypeReference<>() {}
-        );
+        restTemplate.exchange(employeeApi, HttpMethod.DELETE, requestEntity, new ParameterizedTypeReference<>() {});
     }
 
     private CreateMockEmployeeInput createMockEmployeeInput(Employee employee) {

@@ -2,13 +2,12 @@ package com.reliaquest.api.controller;
 
 import com.reliaquest.api.model.Employee;
 import com.reliaquest.api.service.EmployeeService;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/employees")
@@ -40,7 +39,8 @@ public class IEmployeeControllerImpl implements IEmployeeController<Employee, Em
     @Override
     @GetMapping("/{id}")
     public ResponseEntity<Employee> getEmployeeById(@PathVariable String id) {
-        return employeeService.searchById(id)
+        return employeeService
+                .searchById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

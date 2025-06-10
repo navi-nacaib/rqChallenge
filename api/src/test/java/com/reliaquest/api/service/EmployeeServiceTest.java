@@ -1,6 +1,14 @@
 package com.reliaquest.api.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+
 import com.reliaquest.api.model.Employee;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -8,15 +16,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 class EmployeeServiceTest {
 
@@ -34,7 +33,8 @@ class EmployeeServiceTest {
 
     @Test
     void getAllEmployees_returnsList() {
-        String json = """
+        String json =
+                """
             {
               "data":[
                 {
@@ -58,14 +58,13 @@ class EmployeeServiceTest {
             }
             """;
 
-        mockServer.expect(requestTo(API_URL))
+        mockServer
+                .expect(requestTo(API_URL))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(json, MediaType.APPLICATION_JSON));
 
         List<Employee> list = service.getAllEmployees();
-        assertThat(list).hasSize(2)
-                .extracting(Employee::getName)
-                .containsExactly("Alice", "Bob");
+        assertThat(list).hasSize(2).extracting(Employee::getName).containsExactly("Alice", "Bob");
 
         mockServer.verify();
     }
@@ -73,7 +72,8 @@ class EmployeeServiceTest {
     @Test
     void searchByName_filtersCaseInsensitive() {
         // stub getAllEmployees
-        String json = """
+        String json =
+                """
             {
               "data":[
                 {"id":"1","employee_name":"Anna","employee_salary":50,"employee_age":25,"employee_title":"A","employee_email":"a"},
@@ -83,20 +83,21 @@ class EmployeeServiceTest {
               "status":"OK"
             }
             """;
-        mockServer.expect(requestTo(API_URL))
+        mockServer
+                .expect(requestTo(API_URL))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(json, MediaType.APPLICATION_JSON));
 
         List<Employee> found = service.searchByName("Ann");
-        assertThat(found).extracting(Employee::getName)
-                .containsExactly("Anna", "annette");
+        assertThat(found).extracting(Employee::getName).containsExactly("Anna", "annette");
 
         mockServer.verify();
     }
 
     @Test
     void searchById_findsCorrectOne() {
-        String json = """
+        String json =
+                """
             {
               "data":[
                 {"id":"42","employee_name":"Carol","employee_salary":70,"employee_age":30,"employee_title":"P","employee_email":"carol"}
@@ -104,21 +105,21 @@ class EmployeeServiceTest {
               "status":"OK"
             }
             """;
-        mockServer.expect(requestTo(API_URL))
+        mockServer
+                .expect(requestTo(API_URL))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(json, MediaType.APPLICATION_JSON));
 
         Optional<Employee> maybe = service.searchById("42");
-        assertThat(maybe).isPresent()
-                .get().extracting(Employee::getName)
-                .isEqualTo("Carol");
+        assertThat(maybe).isPresent().get().extracting(Employee::getName).isEqualTo("Carol");
 
         mockServer.verify();
     }
 
     @Test
     void getHighestSalary_computesMax() {
-        String json = """
+        String json =
+                """
             {
               "data":[
                 {"id":"1","employee_name":"X","employee_salary":100,"employee_age":20,"employee_title":"T","employee_email":"x"},
@@ -127,7 +128,8 @@ class EmployeeServiceTest {
               "status":"OK"
             }
             """;
-        mockServer.expect(requestTo(API_URL))
+        mockServer
+                .expect(requestTo(API_URL))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(json, MediaType.APPLICATION_JSON));
 
@@ -141,7 +143,8 @@ class EmployeeServiceTest {
     void getTopTenHighestEarningEmployeeNames_sortsAndLimits() {
         // build 12 employees with salaries 0..11
         String items = IntStream.range(0, 12)
-                .mapToObj(i -> String.format("""
+                .mapToObj(i -> String.format(
+                        """
                             {
                               "id":"%d",
                               "employee_name":"E%d",
@@ -150,19 +153,20 @@ class EmployeeServiceTest {
                               "employee_title":"T",
                               "employee_email":"e%d"
                             }
-                            """, i, i, i, i))
+                            """,
+                        i, i, i, i))
                 .collect(Collectors.joining(","));
         String json = """
             { "data":[%s], "status":"OK" }
             """.formatted(items);
 
-        mockServer.expect(requestTo(API_URL))
+        mockServer
+                .expect(requestTo(API_URL))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(json, MediaType.APPLICATION_JSON));
 
         List<String> top10 = service.getTopTenHighestEarningEmployeeNames();
-        assertThat(top10).hasSize(10)
-                .containsExactly("E11","E10","E9","E8","E7","E6","E5","E4","E3","E2");
+        assertThat(top10).hasSize(10).containsExactly("E11", "E10", "E9", "E8", "E7", "E6", "E5", "E4", "E3", "E2");
 
         mockServer.verify();
     }
@@ -177,7 +181,8 @@ class EmployeeServiceTest {
         input.setEmail("zed@co");
 
         // expected server wrapper JSON
-        String empJson = """
+        String empJson =
+                """
             {
               "id":"99",
               "employee_name":"Zed",
@@ -187,26 +192,32 @@ class EmployeeServiceTest {
               "employee_email":"zed@co"
             }
             """;
-        String wrapper = """
+        String wrapper =
+                """
             {
               "data":%s,
               "status":"Successfully processed request.",
               "error":null
             }
-            """.formatted(empJson);
+            """
+                        .formatted(empJson);
 
-        mockServer.expect(requestTo(API_URL))
+        mockServer
+                .expect(requestTo(API_URL))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
                 // request body must match CreateMockEmployeeInput JSON
-                .andExpect(content().json("""
+                .andExpect(content()
+                        .json(
+                                """
                       {
                         "name":"Zed",
                         "salary":500,
                         "age":35,
                         "title":"Lead"
                       }
-                  """, false))
+                  """,
+                                false))
                 .andRespond(withSuccess(wrapper, MediaType.APPLICATION_JSON));
 
         Employee created = service.createEmployee(input);
@@ -220,7 +231,8 @@ class EmployeeServiceTest {
     void deleteEmployee_sendsDeleteWithBody() {
         String id = "abc-123";
         // stub DELETE; body is DeleteMockEmployeeInput { name: id }
-        mockServer.expect(requestTo(API_URL))
+        mockServer
+                .expect(requestTo(API_URL))
                 .andExpect(method(HttpMethod.DELETE))
                 .andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().json("""
