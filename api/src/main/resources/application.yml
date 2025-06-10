@@ -1,2 +1,6 @@
 spring.application.name: employee-api
 server.port: 8111
+
+logging:
+  level:
+    com.reliaquest.api: TRACE

@@ -2,6 +2,9 @@ plugins {
     id 'project-conventions'
 }
 
+group = 'com.reliaquest'
+version = '0.0.1-SNAPSHOT'
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'net.datafaker:datafaker:2.3.1'
